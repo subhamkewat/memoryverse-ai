@@ -57,5 +57,5 @@ AI Concepts
 
 ## 👨‍💻 Author
 
-Subham Kumar Kewat
+Subham Kumar Kewat,
 VSSUT Burlals. Contributions matching engineering taxonomy guidelines are welcome!
