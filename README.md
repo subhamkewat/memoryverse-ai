@@ -44,7 +44,8 @@ AI Concepts
 
 ## 📷 Screenshots
 
-(Add screenshots here)
+<img width="1366" height="768" alt="Screenshot (1259)" src="https://github.com/user-attachments/assets/4cf1ef71-751a-45b7-9f63-985f9c11160a" />
+
 
 ## 🔮 Future Improvements
 
