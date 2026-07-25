@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemoryVerse AI - System Architecture</title>
+    <style>
+        /* Modern Design System & Variables */
+        :root {
+            --bg-color: #030712;
+            --card-bg: rgba(15, 23, 42, 0.65);
+            --card-border: rgba(59, 130, 246, 0.15);
+            --card-border-hover: rgba(96, 165, 250, 0.6);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.35);
+            --accent-cyan: #06b6d4;
+            --accent-cyan-glow: rgba(6, 182, 212, 0.35);
+            --accent-purple: #8b5cf6;
+            --accent-purple-glow: rgba(139, 92, 246, 0.35);
+            --grid-color: rgba(59, 130, 246, 0.03);
+        }
+
+        .node-deployment {
+            border-left: 3px solid #10b981;
+        }
+        .node-deployment .node-icon {
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.1);
+        }
+        .node-deployment:hover .node-icon {
+            background: #10b981;
+            color: white;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%),
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Typography & Scrollbar */
+        h1, h2, h3, h4 {
+            font-weight: 600;
+            letter-spacing: -0.025em;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.4);
+        }
+
+        /* Layout Structure */
+        header {
+            padding: 1.5rem 3rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(3, 7, 18, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-mark {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px var(--primary-glow);
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        .logo-text h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(to right, #ffffff, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-text p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(96, 165, 250, 0.6);
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        .btn-active:hover {
+            background: #2563eb;
+            color: white;
+        }
+
+        /* Main Workspace Container */
+        .container {
+            display: flex;
+            flex: 1;
+            padding: 2rem 3rem;
+            gap: 2rem;
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Diagram Canvas */
+        .canvas-container {
+            flex: 2.5;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            position: relative;
+            min-height: 760px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .diagram-grid {
+            position: relative;
+            width: 1000px;
+            height: 710px;
+        }
+
+        /* SVG Arrow Layer */
+        .connector-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .flow-line {
+            fill: none;
+            stroke: rgba(147, 197, 253, 0.15);
+            stroke-width: 3;
+            stroke-linecap: round;
+            transition: stroke 0.3s ease, stroke-width 0.3s ease;
+        }
+
+        .flow-line-active {
+            stroke: var(--primary);
+            stroke-width: 3.5;
+            filter: drop-shadow(0 0 4px var(--primary-glow));
+        }
+
+        .flow-dash {
+            fill: none;
+            stroke: var(--accent-cyan);
+            stroke-width: 3;
+            stroke-dasharray: 8 15;
+            stroke-linecap: round;
+            animation: flowAnim 30s linear infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes flowAnim {
+            to {
+                stroke-dashoffset: -1000;
+            }
+        }
+
+        /* Node Styling */
+        .node {
+            position: absolute;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            width: 220px;
+            cursor: pointer;
+            z-index: 2;
+            backdrop-filter: blur(12px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .node:hover {
+            border-color: var(--card-border-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 0 15px var(--primary-glow);
+        }
+
+        .node-active {
+            border-color: var(--accent-cyan) !important;
+            box-shadow: 0 0 20px var(--accent-cyan-glow) !important;
+            background: rgba(15, 23, 42, 0.85);
+            transform: scale(1.03) translateY(-2px);
+        }
+
+        .node-highlighted-path {
+            border-color: var(--primary);
+            box-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        .node-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .node-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(59, 130, 246, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #60a5fa;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .node:hover .node-icon {
+            background: var(--primary);
+            color: white;
+        }
+
+        .node-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .node-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Node Categories styling */
+        .node-input {
+            border-left: 3px solid var(--accent-purple);
+        }
+        .node-input .node-icon {
+            color: #c084fc;
+            background: rgba(168, 85, 247, 0.1);
+        }
+        .node-input:hover .node-icon {
+            background: var(--accent-purple);
+        }
+
+        .node-process {
+            border-left: 3px solid var(--accent-cyan);
+        }
+        .node-process .node-icon {
+            color: #22d3ee;
+            background: rgba(6, 182, 212, 0.1);
+        }
+        .node-process:hover .node-icon {
+            background: var(--accent-cyan);
+        }
+
+        .node-feature {
+            border-left: 3px solid #f59e0b;
+        }
+        .node-feature .node-icon {
+            color: #fbbf24;
+            background: rgba(245, 158, 11, 0.1);
+        }
+        .node-feature:hover .node-icon {
+            background: #f59e0b;
+        }
+
+        /* Node Grid Placements */
+        /* Row 1: Entrance & Frontend */
+        #node-user { top: 90px; left: 50px; }
+        #node-webapp { top: 90px; left: 390px; }
+        #node-upload { top: 90px; left: 730px; }
+        #node-vercel { top: 10px; left: 410px; width: 180px; padding: 0.4rem 0.75rem; border-radius: 8px; }
+
+        /* Row 2: Extraction & Relation Mapping */
+        #node-ocr { top: 260px; left: 730px; }
+        #node-kg { top: 260px; left: 390px; }
+
+        /* Row 3: Vector storage & raw vault */
+        #node-vector { top: 430px; left: 240px; }
+        #node-vault { top: 430px; left: 540px; }
+
+        /* Row 4: Chatbot & Dashboard */
+        #node-rag { top: 600px; left: 240px; }
+        #node-analytics { top: 600px; left: 540px; }
+
+        /* Auxiliary Feature Nodes on Sides */
+        #node-ats { top: 260px; left: 50px; }
+        #node-skillgap { top: 430px; left: 830px; }
+        #node-roadmap { top: 600px; left: 50px; }
+        #node-forecast { top: 600px; left: 830px; }
+        #node-nlsearch { top: 430px; left: 50px; }
+
+        /* Inspector Panel (Sidebar) */
+        .inspector-panel {
+            flex: 1.2;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 1.75rem;
+            backdrop-filter: blur(15px);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-height: 750px;
+            overflow-y: auto;
+            position: sticky;
+            top: 2rem;
+        }
+
+        .inspector-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 1rem;
+        }
+
+        .inspector-type {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #60a5fa;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .inspector-title {
+            font-size: 1.4rem;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+        }
+
+        .inspector-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .tech-pill-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tech-pill {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            padding: 0.3rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .data-flow-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .data-io {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .data-io-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .data-io-val {
+            color: #ffffff;
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .security-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: #34d399;
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+        }
+
+        .hackathon-tip {
+            border-left: 3px solid var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.03);
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+            color: #a5f3fc;
+            line-height: 1.4;
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #1e293b;
+            border: 1px solid #3b82f6;
+            padding: 1rem;
+            border-radius: 10px;
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateY(150%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+
+        /* Help Info Panel */
+        .help-banner {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 0.75rem 3rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #93c5fd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        /* Media Queries for Responsiveness */
+        @media (max-width: 1400px) {
+            .container {
+                flex-direction: column;
+                padding: 1.5rem;
+            }
+            .canvas-container {
+                min-height: 800px;
+                overflow-x: auto;
+            }
+            .diagram-grid {
+                margin: 0 auto;
+                transform: scale(0.95);
+            }
+            .inspector-panel {
+                max-height: none;
+            }
+        }
+    </style>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <div class="header-title-container">
+            <div class="logo-mark">M</div>
+            <div class="logo-text">
+                <h1>MemoryVerse AI – System Architecture</h1>
+                <p>Interactive System Blueprint & Data Flow</p>
+            </div>
+        </div>
+        <div class="controls">
+            <button class="btn btn-active" id="btn-interactive" onclick="setMode('interactive')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                Interactive Inspector
+            </button>
+            <button class="btn" id="btn-flow" onclick="startFlowAnimation()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Animate Data Flow
+            </button>
+        </div>
+    </header>
+
+    <div class="help-banner">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span><strong>Hackathon Tip:</strong> Click any node on the architecture diagram to inspect data schemas, stack recommendations, and security layers.</span>
+    </div>
+
+    <div class="container">
+        <!-- Diagram Canvas -->
+        <div class="canvas-container">
+            <div class="diagram-grid">
+                <!-- SVG Connections Line Overlay -->
+                <svg class="connector-svg">
+                    <defs>
+                        <!-- Glow Filters -->
+                        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="3" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        </filter>
+                    </defs>
+
+                    <!-- WebApp -> Vercel Deployment Link -->
+                    <path id="line-webapp-vercel" class="flow-line" d="M 500,90 L 500,65" />
+
+                    <!-- Row 1 Connections: User -> WebApp -> PDF Upload -->
+                    <path id="line-user-webapp" class="flow-line" d="M 270,135 L 390,135" />
+                    <path id="line-webapp-upload" class="flow-line" d="M 610,135 L 730,135" />
+
+                    <!-- Row 2 Connections: PDF Upload -> OCR Engine -> KG Builder -->
+                    <path id="line-upload-ocr" class="flow-line" d="M 840,155 L 840,260" />
+                    <path id="line-ocr-kg" class="flow-line" d="M 730,305 L 610,305" />
+
+                    <!-- Row 3 Split Connections: KG Builder -> Vector DB & Doc Vault -->
+                    <path id="line-kg-vector" class="flow-line" d="M 430,345 L 350,430" />
+                    <path id="line-kg-vault" class="flow-line" d="M 570,345 L 650,430" />
+
+                    <!-- Row 4 RAG chatbot feed: Vector DB -> RAG Chatbot, Doc Vault -> RAG Chatbot, Doc Vault -> Analytics -->
+                    <path id="line-vector-rag" class="flow-line" d="M 350,515 L 350,600" />
+                    <path id="line-vault-rag" class="flow-line" d="M 600,515 L 460,600" />
+                    <path id="line-vault-analytics" class="flow-line" d="M 650,515 L 650,600" />
+
+                    <!-- Additional Features Connections -->
+                    <!-- ATS Audit connected to WebApp / OCR -->
+                    <path id="line-ats-webapp" class="flow-line" d="M 160,260 L 400,175" stroke-dasharray="4" />
+                    <path id="line-ats-ocr" class="flow-line" d="M 270,305 L 730,305" stroke-dasharray="4" />
+                    
+                    <!-- NL Search connected to Vector DB -->
+                    <path id="line-nlsearch-vector" class="flow-line" d="M 270,475 L 240,475" stroke-dasharray="4" />
+
+                    <!-- Skill Gap connected to KG Builder -->
+                    <path id="line-skillgap-kg" class="flow-line" d="M 830,475 L 610,310" stroke-dasharray="4" />
+
+                    <!-- AI Career Roadmap connected to RAG Bot -->
+                    <path id="line-roadmap-rag" class="flow-line" d="M 270,645 L 240,645" stroke-dasharray="4" />
+
+                    <!-- Placement Forecast connected to Analytics -->
+                    <path id="line-forecast-analytics" class="flow-line" d="M 830,645 L 760,645" stroke-dasharray="4" />
+
+                    <!-- Active Flow Dashboard Overlay Path (used for Flow Animation) -->
+                    <path id="flow-path-main" class="flow-dash" d="" />
+                </svg>
+
+                <!-- Vercel Deployment Node -->
+                <div class="node node-deployment" id="node-vercel" onclick="inspectNode('vercel')">
+                    <div class="node-header">
+                        <div class="node-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 22 22 22"/></svg>
+                        </div>
+                        <div>
+                            <div class="node-title">Vercel Cloud</div>
+                            <div class="node-subtitle">Deployment Platform</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Core Nodes -->
+                <!-- User Node -->
+                <div class="node node-input" id="node-user" onclick="inspectNode('user')">
+                    <div class="node-header">
+                        <div class="node-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <div>
+                            <div class="node-title">Student / User</div>
+                            <div class="node-subtitle">Student / Job Seeker</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WebApp Node -->
+                <div class="node node-input" id="node-webapp" onclick="inspectNode('webapp')">
+                    <div class="node-header">
+                        <div class="node-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        </div>
+                        <div>
+                            <div class="node-title">Web Application</div>
+                            <div class="node-subtitle">React + Vite Frontend</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Node -->
+                <div class="node node-input" id="node-upload" onclick="inspectNode('upload')">
+                    <div class="node-header">
+                        <div class="node-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+                        </div>
+                        <div>
+                            <div class="node-title">Document Upload</div>
+                            <div class="node-subtitle">PDFs, Certificates, Papers</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OCR Node -->
+                <div class="node node-process" id="node-ocr" onclick="inspectNode('ocr')">
+                    <div class="node-header">
+                        <div class="node-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4a2 2 0 0 1 2-2h4"/><path d="M14 2h4a2 2 0 0 1 2 2v3"/><path d="M20 17v3a2 2 0 0 1-2 2h-4"/><path d="M10 22H6a2 2 0 0 1-2-2v-3"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="12" y1="9" x2="12" y2="15"/></svg>
+                        </div>
+                        <div>
+                            <div class="node-title">OCR & Metadata</div>
+                            <div class="node-subtitle">AI Feature Extraction</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Knowledge Graph Node -->
+                <div class="node node-process" id="node-kg" onclick="inspectNode('kg')">
+                    <div class="node-header">
+                        <div class="node-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                        </div>
+                        <div>
+                            <div class="node-title">KG Builder</div>
+                            <div class="node-subtitle">Knowledge Graph Compiler</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vector DB Node -->
+                <div class="node node-process" id="node-vector" onclick="inspectNode('vector')">
+                    <div class="node-header">
+                        <div class="node-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+                        </div>
+                        <div>
+                            <div class="node-title">Vector Database</div>
+                            <div class="node-subtitle">Semantic Embeddings</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vault Node -->
+                <div class="node node-process" id="node-vault" onclick="inspectNode('vault')">
+                    <div class="node-header">
+                        <div class="node-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </div>
+                        <div>
+                            <div class="node-title">Document Vault</div>
+                            <div class="node-subtitle">Secure Encrypted Storage</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RAG Bot Node -->
+                <div class="node node-process" id="node-rag" onclick="inspectNode('rag')">
+                    <div class="node-header">
+                        <div class="node-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
+                        </div>
+                        <div>
+                            <div class="node-title">RAG Chatbot</div>
+                            <div class="node-subtitle">Career Assistant LLM</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Node -->
+                <div class="node node-process" id="node-analytics" onclick="inspectNode('analytics')">
+                    <div class="node-header">
+                        <div class="node-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                        </div>
+                        <div>
+                            <div class="node-title">Career Analytics</div>
+                            <div class="node-subtitle">Insights Dashboard</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary Feature Nodes -->
+                <!-- ATS Audit -->
+                <div class="node node-feature" id="node-ats" onclick="inspectNode('ats')">
+                    <div class="node-header">
+                        <div class="node-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                        <div>
+                            <div class="node-title">Resume ATS Audit</div>
+                            <div class="node-subtitle">Compliance Score & Edits</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NL Search -->
+                <div class="node node-feature" id="node-nlsearch" onclick="inspectNode('nlsearch')">
+                    <div class="node-header">
+                        <div class="node-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        </div>
+                        <div>
+                            <div class="node-title">NL Search</div>
+                            <div class="node-subtitle">Semantic Document Query</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skill Gap Analyzer -->
+                <div class="node node-feature" id="node-skillgap" onclick="inspectNode('skillgap')">
+                    <div class="node-header">
+                        <div class="node-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        </div>
+                        <div>
+                            <div class="node-title">Skill Gap Analyzer</div>
+                            <div class="node-subtitle">Market Demands Delta</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Career Roadmap -->
+                <div class="node node-feature" id="node-roadmap" onclick="inspectNode('roadmap')">
+                    <div class="node-header">
+                        <div class="node-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21 3 6"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+                        </div>
+                        <div>
+                            <div class="node-title">Career Roadmap</div>
+                            <div class="node-subtitle">AI-Guided Pathways</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Placement Forecast -->
+                <div class="node node-feature" id="node-forecast" onclick="inspectNode('forecast')">
+                    <div class="node-header">
+                        <div class="node-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 6l-9.5 9.5-5-5L1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                        </div>
+                        <div>
+                            <div class="node-title">Placement Forecast</div>
+                            <div class="node-subtitle">Predictive Success Engine</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Technical Inspector Panel -->
+        <div class="inspector-panel" id="inspector">
+            <div class="inspector-header">
+                <div class="inspector-type" id="ins-type">Core Hub</div>
+                <h2 class="inspector-title" id="ins-title">MemoryVerse AI Architecture</h2>
+                <p class="inspector-desc" id="ins-desc">Select any component on the left diagram to view technical implementations, APIs, recommended stacks, and security protocols designed for a high-performance hackathon prototype.</p>
+            </div>
+
+            <div id="ins-details" style="display:none;">
+                <div style="margin-bottom: 1.25rem;">
+                    <h3 class="section-title">Recommended Tech Stack</h3>
+                    <div class="tech-pill-container" id="ins-stack">
+                        <span class="tech-pill">React</span>
+                        <span class="tech-pill">Vite</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.25rem;">
+                    <h3 class="section-title">Data Schema & I/O Flow</h3>
+                    <div class="data-flow-box">
+                        <div class="data-io">
+                            <span class="data-io-label">Input</span>
+                            <span class="data-io-val" id="ins-input">User PDF</span>
+                        </div>
+                        <div class="data-io">
+                            <span class="data-io-label">Output</span>
+                            <span class="data-io-val" id="ins-output">Extracted JSON</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.25rem;">
+                    <h3 class="section-title">Security & Scalability</h3>
+                    <div class="security-badge" id="ins-security">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <span>TLS 1.3 / AES-256</span>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="section-title">Hackathon Pitch Angle</h3>
+                    <div class="hackathon-tip" id="ins-tip">
+                        Stress the immediate parsing efficiency. Highlighting local WASM engines shows you care about cost and offline privacy!
+                    </div>
+                </div>
+            </div>
+            
+            <div id="ins-placeholder">
+                <div style="text-align: center; color: var(--text-secondary); padding: 3rem 0;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary); margin-bottom: 1rem;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    <p style="font-size: 0.95rem;">Interactive Inspection Mode</p>
+                    <p style="font-size: 0.8rem; margin-top: 0.5rem;">Click nodes like <strong>"Knowledge Graph Builder"</strong> or <strong>"RAG Chatbot"</strong> to load their operational profiles here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast-notify">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span id="toast-message">Simulation Started! Follow the glowing data path.</span>
+    </div>
+
+    <script>
+        // Database of Node Specs
+        const nodeSpecs = {
+            vercel: {
+                type: 'Deployment Cloud',
+                title: 'Vercel Cloud Deployment',
+                desc: 'Hosts the MemoryVerse AI production frontend. Configured with automated CI/CD pipelines triggered by GitHub commits. Serves static React/Vite assets via Vercel\'s global Edge Network, providing sub-second load times worldwide.',
+                stack: ['Vercel Edge', 'GitHub Actions', 'Serverless Functions'],
+                input: 'Git Push / Production Build',
+                output: 'Live HTTPS Web Deployment',
+                security: 'DDoS Protection, SSL/TLS Encryption, Edge Middleware',
+                tip: 'Deploying on Vercel showcases professional cloud delivery, ensuring high availability, global caching, and fast feedback loops for updates.'
+            },
+            user: {
+                type: 'User Actor',
+                title: 'User Interface Actor',
+                desc: 'Represents students, job seekers, or academic researchers accessing the MemoryVerse AI ecosystem. They interact with the system via web clients to upload documents, review compliance scorecards, audit skill matches, and chat with the RAG assistant.',
+                stack: ['Web Browser', 'Auth0 / Clerk', 'HTTP/2'],
+                input: 'None (Interactivity Session)',
+                output: 'JWT Tokens & Raw Documents',
+                security: 'Clerk SSO Authentication / OAuth2',
+                tip: 'In a pitch, showcase how Clerk provides instant biometric or social logins, keeping user retention high and reducing login friction.'
+            },
+            webapp: {
+                type: 'Frontend',
+                title: 'MemoryVerse AI Web App',
+                desc: 'A responsive Single Page Application built on React, powered by Vite. Utilizes Tailwind CSS for UI widgets and Tailwind/Framer Motion for state transitions. Acts as the client orchestrator for all asynchronous AI modules.',
+                stack: ['React 18', 'Vite', 'Tailwind CSS', 'Axios', 'Recharts'],
+                input: 'JSON Data / REST API responses',
+                output: 'Rendered DOM / Binary File Uploads',
+                security: 'Content Security Policy (CSP), CORS protection',
+                tip: 'Vite enables hot-module reloading and optimized static asset packaging, which results in a 100/100 Lighthouse Performance score. Crucial for hackathon judges inspecting frontend polish.'
+            },
+            upload: {
+                type: 'Ingestion Layer',
+                title: 'Document Upload Endpoint',
+                desc: 'A multi-part form receiver designed to ingest high-volume PDF/DocX resumes, academic research transcripts, certifications, and certificates. Standardizes filenames and assigns UUIDs before streaming to temporary storage.',
+                stack: ['AWS S3', 'Multer', 'Express.js', 'Filepond SDK'],
+                input: 'PDF / DOCX / PNG (Certificates)',
+                output: 'Secure S3 Asset URIs',
+                security: 'MIME-type validation, 10MB filesize limit',
+                tip: 'Show off security awareness: prevent malicious shell execution by blocking SVG or executable file uploads, and processing assets only on secure local buffers.'
+            },
+            ocr: {
+                type: 'AI Processing Engine',
+                title: 'OCR & Metadata Extractor',
+                desc: 'Processes ingested documents using Optical Character Recognition (OCR) for scanned PDFs and images, then executes Named Entity Recognition (NER) utilizing localized LLM prompts to extract skills, certifications, and graduation dates.',
+                stack: ['Tesseract.js', 'Llama-3-8B-Instruct', 'LangChain Parse', 'PyMuPDF'],
+                input: 'Raw PDF / Image Buffer',
+                output: 'Structured metadata JSON',
+                security: 'Local data sandboxing / GDPR compliant parsing',
+                tip: 'By using Llama-3 parsing, we format messy text into reliable, validated JSON schemas with zero regex dependencies, achieving 98% parsing accuracy.'
+            },
+            kg: {
+                type: 'Graph Relation Engine',
+                title: 'Knowledge Graph Builder',
+                desc: 'Organizes the extracted skills, companies, and roles into a relational Knowledge Graph. Maps conceptual connections (e.g. "Python" -> "Data Science" -> "Machine Learning Engineer"). Helps in semantic cross-referencing and contextual understanding.',
+                stack: ['Neo4j', 'LangGraph', 'NetworkX', 'GraphQL'],
+                input: 'Extracted Profile JSON',
+                output: 'Graph Nodes & Edges (Cypher)',
+                security: 'Neo4j AuraDB TLS, IAM role restrictions',
+                tip: 'Using a Graph DB allows MemoryVerse to find "hidden skills" and non-obvious career paths. If a user has a "Physics" background, the graph links it dynamically to "Quantitative Finance" analytics.'
+            },
+            vector: {
+                type: 'Database / Storage',
+                title: 'Vector Database',
+                desc: 'Generates high-dimensional semantic vector embeddings (384-d or 1536-d) of user documents, storing them in Pinecone or ChromaDB. Enables sub-millisecond semantic search, query-to-profile alignment, and matching algorithms.',
+                stack: ['Pinecone', 'text-embedding-3-small', 'ChromaDB', 'pgvector'],
+                input: 'Extracted Skills & Text Chunks',
+                output: 'Vector Indexes & Metadata queries',
+                security: 'API Key rotation, Virtual Private Cloud (VPC)',
+                tip: 'Highlighting vector databases shows the judges you are building real, production-ready RAG instead of just feeding whole documents into high-cost prompt loops.'
+            },
+            vault: {
+                type: 'Database / Storage',
+                title: 'Document Vault',
+                desc: 'A highly secure, tamper-proof repository for user credentials, transcripts, and certificates. Implements zero-trust file access rules, generating short-lived signed URLs for authenticated user retrieval.',
+                stack: ['AWS KMS', 'PostgreSQL', 'AES-256 Encryption'],
+                input: 'Raw documents & identity meta',
+                output: 'Pre-signed S3 download paths',
+                security: 'AES-256 Envelope encryption at rest',
+                tip: 'Emphasize GDPR compliance. A student owns their data: they can toggle "Vault Privacy Mode" to instantly encrypt or delete their records from the analytics indices.'
+            },
+            rag: {
+                type: 'AI Model / Orchestrator',
+                title: 'RAG Career Chatbot',
+                desc: 'The conversational assistant of MemoryVerse AI. Employs Retrieval-Augmented Generation (RAG) by fetching matching vector embeddings and graph relations before formatting prompts to provide personalized career suggestions, mock interview questions, and prep guides.',
+                stack: ['LlamaIndex', 'OpenAI GPT-4o', 'LangChain', 'FastAPI'],
+                input: 'User query + Vector context',
+                output: 'Markdown response text stream',
+                security: 'Prompt injection guards, Chat history isolation',
+                tip: 'RAG drastically reduces LLM hallucination rate to <1.5%, giving factual answers about specific college course alignments and actual vacancy requirements.'
+            },
+            analytics: {
+                type: 'Insights / Reporting',
+                title: 'Career Analytics Dashboard',
+                desc: 'Compiles individual profile insights, graph relationships, and placement predictions into clean visual metrics. Renders charts showing skill mastery progress, job placement probabilities, and career growth velocity.',
+                stack: ['Recharts', 'Tremor UI', 'Chart.js', 'Tailwind CSS'],
+                input: 'Extracted metrics & forecast tables',
+                output: 'Interactive charts & SVG heatmaps',
+                security: 'Row-level database security (RLS)',
+                tip: 'Visual metrics sell apps to hackathon judges. Use smooth animations on charts to show active progress, making the career tracker look like a gamified RPG dashboard.'
+            },
+            ats: {
+                type: 'Premium Feature',
+                title: 'Resume ATS Audit Module',
+                desc: 'Inspects user resumes for compatibility with Applicant Tracking Systems. Scores templates based on parser readability, parses key-value formats, detects hidden white-text characters, and outputs concrete wording suggestions.',
+                stack: ['Python regex', 'PDFMiner', 'OpenAI API'],
+                input: 'Uploaded PDF Resume',
+                output: 'ATS Score card (0-100) + Edits list',
+                security: 'Local memory processing (no data caching)',
+                tip: 'A massive value proposition: 75% of resumes are filtered out by ATS. Highlighting this feature showcases immediate, real-world utility.'
+            },
+            nlsearch: {
+                type: 'Premium Feature',
+                title: 'Natural Language Search',
+                desc: 'Allows users to find documents inside their vault or jobs in the database by typing conversational queries (e.g., "Find all research papers where I used PyTorch"). Translates query to vector embeddings to find matches.',
+                stack: ['Cosine Similarity', 'Pinecone Metadata Filters'],
+                input: 'Conversational Search String',
+                output: 'Matching document collections',
+                security: 'Scope-locked vector metadata search',
+                tip: 'Eliminates keyword-matching limits. It allows users to search by meaning, not just exact strings.'
+            },
+            skillgap: {
+                type: 'Premium Feature',
+                title: 'Skill Gap Analyzer',
+                desc: 'Compares the user\'s Knowledge Graph node skills with nodes derived from live scraping target job descriptions. Generates a delta list of missing skills, suggesting courses or papers inside the vault to bridge the gap.',
+                stack: ['LangGraph', 'Scrapy', 'Co-occurrence matrices'],
+                input: 'User graph node + Target job schema',
+                output: 'Gap analysis checklist + Course suggestions',
+                security: 'HTTPS Web scrapers / API security',
+                tip: 'Connects academic research files directly to job requirements, showing students exactly what credentials they need to acquire to land specific roles.'
+            },
+            roadmap: {
+                type: 'Premium Feature',
+                title: 'AI Career Roadmap Generator',
+                desc: 'Produces a step-by-step interactive timeline directing a user towards a desired role. Coordinates RAG output with academic milestones, suggesting projects, skill acquisitions, and certifications in chronological stages.',
+                stack: ['MermaidJS rendering', 'GPT-4o structured output'],
+                input: 'Current state + Target career goal',
+                output: 'Dynamic interactive roadmap graph',
+                security: 'User-consented career tracking',
+                tip: 'Users love structured timelines. Visual roadmaps with checkboxes increase application engagement metrics and gamification scores.'
+            },
+            forecast: {
+                type: 'Premium Feature',
+                title: 'Placement Forecast Engine',
+                desc: 'An AI forecasting model trained on historical alumni graduation profiles, certifications, internship histories, and mock-interview performances. Yields a statistical likelihood score of placement at target companies.',
+                stack: ['Scikit-learn', 'XGBoost', 'Pandas', 'Flask API'],
+                input: 'User metrics & academic history',
+                output: 'Placement percentage chance + Risk factors',
+                security: 'Anonymized dataset training pipeline',
+                tip: 'Highlighting custom XGBoost classifiers alongside LLMs shows strong technical depth, demonstrating your team knows machine learning, not just API prompts.'
+            }
+        };
+
+        let currentActiveNode = null;
+        let isAnimating = false;
+
+        // Inspector logic
+        function inspectNode(nodeId) {
+            // Remove active styles from previous node
+            if (currentActiveNode) {
+                document.getElementById('node-' + currentActiveNode).classList.remove('node-active');
+                dehighlightConnectedPaths(currentActiveNode);
+            }
+
+            // Set current node as active
+            currentActiveNode = nodeId;
+            const nodeEl = document.getElementById('node-' + nodeId);
+            nodeEl.classList.add('node-active');
+            
+            // Highlight connections related to this node
+            highlightConnectedPaths(nodeId);
+
+            // Fetch specs
+            const spec = nodeSpecs[nodeId];
+            if (!spec) return;
+
+            // Populate inspector
+            document.getElementById('ins-type').innerText = spec.type;
+            document.getElementById('ins-title').innerText = spec.title;
+            document.getElementById('ins-desc').innerText = spec.desc;
+
+            // Tech stack pills
+            const stackContainer = document.getElementById('ins-stack');
+            stackContainer.innerHTML = '';
+            spec.stack.forEach(tech => {
+                const pill = document.createElement('span');
+                pill.className = 'tech-pill';
+                pill.innerText = tech;
+                stackContainer.appendChild(pill);
+            });
+
+            // Data flow
+            document.getElementById('ins-input').innerText = spec.input;
+            document.getElementById('ins-output').innerText = spec.output;
+
+            // Security details
+            document.getElementById('ins-security').innerHTML = `
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span>${spec.security}</span>
+            `;
+
+            // Pitch Angle
+            document.getElementById('ins-tip').innerText = spec.tip;
+
+            // Toggle views
+            document.getElementById('ins-placeholder').style.display = 'none';
+            document.getElementById('ins-details').style.display = 'block';
+
+            // Show Toast
+            showToast(`Inspecting Component: ${spec.title}`);
+        }
+
+        // Connection map for highlights
+        const connectionMap = {
+            user: ['line-user-webapp'],
+            webapp: ['line-user-webapp', 'line-webapp-upload', 'line-ats-webapp', 'line-webapp-vercel'],
+            vercel: ['line-webapp-vercel'],
+            upload: ['line-webapp-upload', 'line-upload-ocr'],
+            ocr: ['line-upload-ocr', 'line-ocr-kg', 'line-ats-ocr'],
+            kg: ['line-ocr-kg', 'line-kg-vector', 'line-kg-vault', 'line-skillgap-kg'],
+            vector: ['line-kg-vector', 'line-vector-rag', 'line-nlsearch-vector'],
+            vault: ['line-kg-vault', 'line-vault-rag', 'line-vault-analytics'],
+            rag: ['line-vector-rag', 'line-vault-rag', 'line-roadmap-rag'],
+            analytics: ['line-vault-analytics', 'line-forecast-analytics'],
+            ats: ['line-ats-webapp', 'line-ats-ocr'],
+            nlsearch: ['line-nlsearch-vector'],
+            skillgap: ['line-skillgap-kg'],
+            roadmap: ['line-roadmap-rag'],
+            forecast: ['line-forecast-analytics']
+        };
+
+        function highlightConnectedPaths(nodeId) {
+            const paths = connectionMap[nodeId] || [];
+            paths.forEach(pathId => {
+                const pathEl = document.getElementById(pathId);
+                if (pathEl) {
+                    pathEl.classList.add('flow-line-active');
+                    pathEl.style.stroke = 'var(--accent-cyan)';
+                }
+            });
+        }
+
+        function dehighlightConnectedPaths(nodeId) {
+            const paths = connectionMap[nodeId] || [];
+            paths.forEach(pathId => {
+                const pathEl = document.getElementById(pathId);
+                if (pathEl) {
+                    pathEl.classList.remove('flow-line-active');
+                    pathEl.style.stroke = '';
+                }
+            });
+        }
+
+        // Toast Helper
+        function showToast(message) {
+            const toast = document.getElementById('toast-notify');
+            document.getElementById('toast-message').innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Mode Setter
+        function setMode(mode) {
+            document.querySelectorAll('.controls .btn').forEach(btn => btn.classList.remove('btn-active'));
+            if (mode === 'interactive') {
+                document.getElementById('btn-interactive').classList.add('btn-active');
+                // Stop flow
+                const flowPath = document.getElementById('flow-path-main');
+                flowPath.setAttribute('d', '');
+                isAnimating = false;
+                showToast("Interactive mode enabled. Click on any component!");
+            }
+        }
+
+        // Flow Pipeline Animator
+        function startFlowAnimation() {
+            if (isAnimating) return;
+            isAnimating = true;
+            
+            document.querySelectorAll('.controls .btn').forEach(btn => btn.classList.remove('btn-active'));
+            document.getElementById('btn-flow').classList.add('btn-active');
+
+            showToast("Starting pipeline trace simulation...");
+
+            // Core Flow Nodes path traversal
+            const steps = [
+                { id: 'user', msg: "Step 1: User accesses the dashboard web application." },
+                { id: 'webapp', msg: "Step 2: Frontend loads and initializes secure API connection." },
+                { id: 'upload', msg: "Step 3: User uploads raw documents (PDF, Certs, Papers)." },
+                { id: 'ocr', msg: "Step 4: AI OCR & Metadata extraction parses entities." },
+                { id: 'kg', msg: "Step 5: Relational features integrated into Neo4j Knowledge Graph." },
+                { id: 'vector', msg: "Step 6A: Vector Embeddings stored in Pinecone database." },
+                { id: 'vault', msg: "Step 6B: Raw encrypted files committed to secure Document Vault." },
+                { id: 'rag', msg: "Step 7: RAG chatbot queries local vectors for matching career guidelines." },
+                { id: 'analytics', msg: "Step 8: Analytics dashboard plots predictive success metrics." }
+            ];
+
+            let index = 0;
+            
+            // Set dynamic path attributes for visual dash flow line
+            const flowPath = document.getElementById('flow-path-main');
+            
+            // Combine all paths into one single animation line string
+            const pathData = "M 75,135 L 390,135 L 730,135 L 840,135 L 840,305 L 390,305 M 390,305 L 240,430 L 240,600 M 390,305 L 540,430 L 540,600 L 650,600";
+            flowPath.setAttribute('d', pathData);
+
+            function runSequence() {
+                if (!isAnimating) return;
+                
+                if (index < steps.length) {
+                    const step = steps[index];
+                    inspectNode(step.id);
+                    showToast(step.msg);
+                    index++;
+                    setTimeout(runSequence, 3500); // 3.5s per node walkthrough
+                } else {
+                    showToast("Pipeline trace complete! Returning to interactive inspect.");
+                    setTimeout(() => {
+                        setMode('interactive');
+                    }, 3000);
+                }
+            }
+
+            runSequence();
+        }
+    </script>
+</body>
+</html>
