@@ -54,8 +54,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
   // Social Links
   const [githubUrl, setGithubUrl] = useState(user.github || 'https://github.com/subham-kewat');
-  const [linkedinUrl, setLinkedinUrl] = useState('https://linkedin.com/in/subham-kewat');
-  const [portfolioUrl, setPortfolioUrl] = useState('https://subham-kewat.dev');
+  const [linkedinUrl, setLinkedinUrl] = useState(user.linkedin || 'https://linkedin.com/in/subham-kewat');
+  const [portfolioUrl, setPortfolioUrl] = useState(user.portfolio || 'https://subham-kewat.dev');
+
+  // Sync state with user prop when it updates or page refreshes
+  useEffect(() => {
+    setFormData(user);
+    setGithubUrl(user.github || 'https://github.com/subham-kewat');
+    setLinkedinUrl(user.linkedin || 'https://linkedin.com/in/subham-kewat');
+    setPortfolioUrl(user.portfolio || 'https://subham-kewat.dev');
+  }, [user]);
 
   // API stats states
   const [githubStats, setGithubStats] = useState({ stars: 142, forks: 38, publicRepos: 18, followers: 56 });
@@ -116,7 +124,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     e.preventDefault();
     onUpdateProfile({
       ...formData,
-      github: githubUrl
+      github: githubUrl,
+      linkedin: linkedinUrl,
+      portfolio: portfolioUrl
     });
     onUpdateSkills(skillsList);
     setSaved(true);
@@ -506,9 +516,9 @@ ${skillsList.join(', ')}
 
               {/* Social Channels Links */}
               <div className="w-full pt-4 border-t border-slate-900 flex justify-center space-x-4 text-slate-500">
-                <a href={githubUrl} target="_blank" rel="noreferrer" className="hover:text-cyan-400 transition-colors"><LinkIcon className="w-4 h-4" /></a>
-                <a href={linkedinUrl} target="_blank" rel="noreferrer" className="hover:text-indigo-400 transition-colors"><LinkIcon className="w-4 h-4" /></a>
-                <a href={portfolioUrl} target="_blank" rel="noreferrer" className="hover:text-purple-400 transition-colors"><LinkIcon className="w-4 h-4" /></a>
+                <a href={user.github} target="_blank" rel="noreferrer" className="hover:text-cyan-400 transition-colors"><LinkIcon className="w-4 h-4" /></a>
+                <a href={user.linkedin} target="_blank" rel="noreferrer" className="hover:text-indigo-400 transition-colors"><LinkIcon className="w-4 h-4" /></a>
+                <a href={user.portfolio} target="_blank" rel="noreferrer" className="hover:text-purple-400 transition-colors"><LinkIcon className="w-4 h-4" /></a>
               </div>
 
             </div>
@@ -804,6 +814,16 @@ ${skillsList.join(', ')}
                 type="text"
                 value={linkedinUrl}
                 onChange={(e) => setLinkedinUrl(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-100 focus:outline-none focus:border-cyan-500"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-400 block mb-1">Portfolio Website Link</label>
+              <input
+                type="text"
+                value={portfolioUrl}
+                onChange={(e) => setPortfolioUrl(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-100 focus:outline-none focus:border-cyan-500"
               />
             </div>
