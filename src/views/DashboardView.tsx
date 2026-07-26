@@ -115,18 +115,55 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return 'Good evening';
   };
 
-  // Placement Notifications
-  const placementNotifications = [
-    { id: 'n-1', company: 'Google Inc.', event: 'Shortlisted for Full Stack AI role', date: 'July 24, 2026', type: 'success' },
-    { id: 'n-2', company: 'Amazon', event: 'Coding Round invitation dispatched', date: 'July 28, 2026', type: 'info' },
-    { id: 'n-3', company: 'System Audit', event: 'Resume ATS score matched cut-offs', date: 'July 22, 2026', type: 'success' }
-  ];
+  // Dynamic Placement Notifications
+  const placementNotifications = (() => {
+    const savedApplied = localStorage.getItem('mv_applied_companies');
+    const appliedList: string[] = savedApplied ? JSON.parse(savedApplied) : [];
+    
+    const baseList = [
+      { id: 'n-1', company: 'Google Inc.', event: 'Shortlisted for Full Stack AI role', date: 'July 24, 2026', type: 'success' },
+      { id: 'n-2', company: 'Amazon', event: 'Coding Round invitation dispatched', date: 'July 28, 2026', type: 'info' },
+      { id: 'n-3', company: 'System Audit', event: 'Resume ATS score matched cut-offs', date: 'July 22, 2026', type: 'success' }
+    ];
 
-  // Upcoming Interviews
-  const upcomingInterviews = [
-    { id: 'i-1', title: 'Technical JS / React & Next.js concepts', date: 'July 25, 2026', time: '10:00 AM', status: 'Scheduled' },
-    { id: 'i-2', title: 'System Design & Vector Databases', date: 'July 30, 2026', time: '02:00 PM', status: 'Pending' }
-  ];
+    appliedList.forEach((company, idx) => {
+      baseList.unshift({
+        id: `applied-notify-${idx}`,
+        company: company,
+        event: 'Application successfully received. Credential profile under recruiter review.',
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        type: 'success'
+      });
+    });
+
+    return baseList;
+  })();
+
+  // Dynamic Upcoming Interviews
+  const upcomingInterviews = (() => {
+    const savedApplied = localStorage.getItem('mv_applied_companies');
+    const appliedList: string[] = savedApplied ? JSON.parse(savedApplied) : [];
+
+    const baseInterviews = [
+      { id: 'i-1', title: 'Technical JS / React & Next.js concepts', date: 'July 25, 2026', time: '10:00 AM', status: 'Scheduled' },
+      { id: 'i-2', title: 'System Design & Vector Databases', date: 'July 30, 2026', time: '02:00 PM', status: 'Pending' }
+    ];
+
+    appliedList.forEach((company, idx) => {
+      const interviewDate = new Date();
+      interviewDate.setDate(interviewDate.getDate() + 3 + idx);
+      
+      baseInterviews.unshift({
+        id: `applied-interview-${idx}`,
+        title: `${company} SDE Round 1 Interview`,
+        date: interviewDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        time: '11:00 AM',
+        status: 'Scheduled'
+      });
+    });
+
+    return baseInterviews;
+  })();
 
   // Recent Activity log entries
   const recentActivities = [
