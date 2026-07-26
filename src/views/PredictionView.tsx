@@ -59,6 +59,31 @@ export const PredictionView: React.FC = () => {
   const [sortBy, setSortBy] = useState<string>('probability');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCompanyModal, setSelectedCompanyModal] = useState<CalculatedCompany | null>(null);
+  const [appliedCompanies, setAppliedCompanies] = useState<string[]>(() => {
+    const saved = localStorage.getItem('mv_applied_companies');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [applyingCompany, setApplyingCompany] = useState<string | null>(null);
+  const [applyStep, setApplyStep] = useState<number>(0);
+
+  useEffect(() => {
+    if (!applyingCompany) return;
+    setApplyStep(0);
+    const interval = setInterval(() => {
+      setApplyStep(prev => Math.min(prev + 1, 3));
+    }, 600);
+    return () => clearInterval(interval);
+  }, [applyingCompany]);
+
+  const handleApplyCompany = (companyName: string) => {
+    setApplyingCompany(companyName);
+    setTimeout(() => {
+      const updated = [...appliedCompanies, companyName];
+      setAppliedCompanies(updated);
+      localStorage.setItem('mv_applied_companies', JSON.stringify(updated));
+      setApplyingCompany(null);
+    }, 2500);
+  };
 
   // Target recruitment companies dataset
   const baseCompanies: CompanyCriteria[] = [
@@ -579,13 +604,26 @@ export const PredictionView: React.FC = () => {
               </div>
             </div>
 
-            {/* Why this Prediction Modal Trigger */}
-            <button
-              onClick={() => setSelectedCompanyModal(c)}
-              className="w-full py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-500 hover:text-cyan-400 transition-all font-semibold text-xs text-slate-300 cursor-pointer"
-            >
-              Why this Prediction?
-            </button>
+            {/* Why this Prediction & Apply Buttons */}
+            <div className="flex gap-2 mt-1">
+              <button
+                onClick={() => setSelectedCompanyModal(c)}
+                className="flex-1 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-500 hover:text-cyan-400 transition-all font-semibold text-[11px] text-slate-350 cursor-pointer"
+              >
+                Why Predict?
+              </button>
+              <button
+                onClick={() => handleApplyCompany(c.name)}
+                disabled={appliedCompanies.includes(c.name)}
+                className={`flex-1 py-2 rounded-xl font-semibold text-[11px] transition-all cursor-pointer ${
+                  appliedCompanies.includes(c.name)
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-default'
+                    : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-md shadow-cyan-500/10'
+                }`}
+              >
+                {appliedCompanies.includes(c.name) ? '✓ Applied' : 'Apply Now'}
+              </button>
+            </div>
 
           </div>
         ))}
@@ -707,6 +745,82 @@ export const PredictionView: React.FC = () => {
                 Done
               </button>
 
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* APPLYING SIMULATION MODAL */}
+      <AnimatePresence>
+        {applyingCompany && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
+            />
+            
+            {/* Content Box */}
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-md p-6 rounded-3xl glass-panel border border-slate-800 bg-[#0f172a]/95 backdrop-blur-md shadow-2xl space-y-6 z-10 text-center"
+            >
+              <div className="space-y-2">
+                <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 font-mono inline-block animate-pulse">
+                  AUTO-APPLYING VIA COGNITIVE VAULT
+                </span>
+                <h3 className="text-xl font-extrabold text-slate-100 font-outfit mt-2">
+                  Applying to {applyingCompany}
+                </h3>
+              </div>
+
+              {/* Progress Steps */}
+              <div className="space-y-3.5 text-left font-mono text-xs text-slate-300 bg-slate-950/50 p-4 rounded-2xl border border-slate-900">
+                <div className="flex items-center space-x-2">
+                  <span className={applyStep >= 0 ? "text-emerald-400 font-bold" : "text-slate-650 animate-pulse"}>
+                    {applyStep > 0 ? "✓" : "●"}
+                  </span>
+                  <span className={applyStep >= 0 ? "text-slate-200" : "text-slate-500"}>
+                    Fetching verified files from secure Vault
+                  </span>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <span className={applyStep >= 1 ? "text-emerald-400 font-bold" : applyStep === 0 ? "text-slate-650 animate-pulse" : "text-slate-700"}>
+                    {applyStep > 1 ? "✓" : applyStep === 1 ? "●" : "○"}
+                  </span>
+                  <span className={applyStep >= 1 ? "text-slate-200" : "text-slate-500"}>
+                    Generating ATS-optimized resume bundle
+                  </span>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <span className={applyStep >= 2 ? "text-emerald-400 font-bold" : applyStep === 1 ? "text-slate-650 animate-pulse" : "text-slate-700"}>
+                    {applyStep > 2 ? "✓" : applyStep === 2 ? "●" : "○"}
+                  </span>
+                  <span className={applyStep >= 2 ? "text-slate-200" : "text-slate-500"}>
+                    Aligning skills with KG target role nodes
+                  </span>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <span className={applyStep >= 3 ? "text-emerald-400 font-bold" : applyStep === 2 ? "text-slate-650 animate-pulse" : "text-slate-700"}>
+                    {applyStep > 3 ? "✓" : applyStep === 3 ? "●" : "○"}
+                  </span>
+                  <span className={applyStep >= 3 ? "text-slate-200" : "text-slate-500"}>
+                    Transmitting package to Recruiter hub
+                  </span>
+                </div>
+              </div>
+
+              {/* Loader */}
+              <div className="flex justify-center py-2">
+                <div className="w-8 h-8 rounded-full border-2 border-cyan-500/20 border-t-cyan-400 animate-spin" />
+              </div>
             </motion.div>
           </div>
         )}
