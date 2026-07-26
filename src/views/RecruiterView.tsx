@@ -164,6 +164,10 @@ export const RecruiterView: React.FC = () => {
   const [candidatesList, setCandidatesList] = useState<CandidateProfile[]>(mockCandidates);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCandidateId, setSelectedCandidateId] = useState<string>('cand-1');
+  const [appliedJobs, setAppliedJobs] = useState<string[]>(() => {
+    const saved = localStorage.getItem('mv_applied_companies');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   // Comparison IDs selection list
   const [comparisonIds, setComparisonIds] = useState<string[]>([]);
@@ -599,6 +603,24 @@ RECRUITER FEEDBACK NOTES:
                   ))}
                 </div>
               </div>
+
+              {/* Submitted Applications */}
+              {selectedCandidate.id === 'cand-1' && appliedJobs.length > 0 && (
+                <div className="space-y-2 pt-3 border-t border-slate-900">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono flex items-center space-x-1">
+                    <Zap className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Submitted Job Applications (Active)</span>
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {appliedJobs.map(job => (
+                      <span key={job} className="px-2.5 py-1 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono flex items-center">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block mr-1.5"></span>
+                        <span>{job}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Actions: Download report */}
               <button
